@@ -10,6 +10,24 @@ struct AnimData{
     float runningTime;
 };
 
+bool IsOnGround(AnimData data, int windowHeight){
+   return data.pos.y >= windowHeight - data.rec.height;
+}
+
+AnimData UpdateAnimData(AnimData data, float dT, int maxFrames){
+     data.runningTime += dT;
+            
+    if(data.runningTime>=data.updateTime){
+        data.runningTime = 0.0;
+        data.rec.x = data.frame * data.rec.width;
+        data.frame++;
+        if(data.frame>maxFrames){
+            data.frame = 0;
+        }
+    }
+    return data;
+}
+
 int main(){
 
     int windowDimensions[2];
@@ -89,8 +107,7 @@ int main(){
 
 
         //If its on the ground
-        if(scarfyData.pos.y >= windowDimensions[1]-scarfyData.rec.height){
-            //scarfyData.pos.y = windowHeight-scarfyData.rec.height;
+        if(IsOnGround(scarfyData, windowDimensions[1])){
             velocity = 0;
             isInAir = false;
         }
@@ -99,6 +116,7 @@ int main(){
             velocity += gravity * dT;
             isInAir = true;
         }
+        
         if(IsKeyPressed(KEY_SPACE) && !isInAir){
             velocity += jumpVelocity;
         }
@@ -120,38 +138,19 @@ int main(){
         //frame * width/numFrames 
 
         //update scarfy animation frame
-        //update running time
 
         if(!isInAir){
-            scarfyData.runningTime += dT;
-            
-            if(scarfyData.runningTime>=scarfyData.updateTime){
-                scarfyData.runningTime = 0.0;
-                scarfyData.rec.x = scarfyData.frame *scarfyData.rec.width;
-                scarfyData.frame++;
-                if(scarfyData.frame>5){
-                    scarfyData.frame = 0;
-                }
-            }
+            scarfyData = UpdateAnimData(scarfyData, dT, 5);
         }
         
+        //update nebula running time
 
         for (int i = 0; i < sizeOfNebulae; i++)
         {
-            //update nebula running time
-            nebulae[i].runningTime += dT;
-            if( nebulae[i].runningTime >= nebulae[i].updateTime){
-                nebulae[i].runningTime = 0.0;
-                nebulae[i].rec.x = nebulae[i].frame * nebulae[i].rec.width;
-                nebulae[i].frame++;
-                if(nebulae[i].frame > 7){
-                    nebulae[i].frame = 0;
-                }
-            }
+            nebulae[i] = UpdateAnimData(nebulae[i], dT, 7);
         }
         
         //Draw scarfy
-        //DrawRectangle(windowWidth/2, posY, width, height, BLUE);
         DrawTextureRec(scarfy, scarfyData.rec, scarfyData.pos, WHITE);
 
         //Draw nebula
