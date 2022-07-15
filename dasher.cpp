@@ -74,7 +74,7 @@ int main(){
 
     Texture2D nebula = LoadTexture("textures/12_nebula_spritesheet.png");
 
-    const int sizeOfNebulae = 6;
+    const int sizeOfNebulae = 3;
     AnimData nebulae[sizeOfNebulae]{};
 
     for (int i = 0; i < sizeOfNebulae; i++)
@@ -91,6 +91,9 @@ int main(){
         nebulae[i].pos.x = windowDimensions[0] + i * 300;
     }
 
+    float finishLine {nebulae[sizeOfNebulae-1].pos.x};
+
+
 
     //nebula X velocity pixels/second
     int nebVelocity{-200};
@@ -102,6 +105,9 @@ int main(){
     float mgX{};
     Texture2D foreground = LoadTexture("textures/foreground.png");
     float fgX{};
+
+    bool collision{};
+
 
     while (!WindowShouldClose())
     {
@@ -165,6 +171,9 @@ int main(){
             nebulae[i].pos.x += nebVelocity * dT;
             
         }
+
+        //update Finish line
+        finishLine += nebVelocity * dT;
         
 
         //update scarfy pos
@@ -188,15 +197,45 @@ int main(){
             nebulae[i] = UpdateAnimData(nebulae[i], dT, 7);
         }
         
-        //Draw scarfy
-        DrawTextureRec(scarfy, scarfyData.rec, scarfyData.pos, WHITE);
+        //Collision with nebulas
+        for(AnimData nebula : nebulae){
+            float pad{50};
+            Rectangle nebRec{
+                nebula.pos.x + pad,
+                nebula.pos.y + pad,
+                nebula.rec.width - 2 * pad,
+                nebula.rec.height - 2*pad
+            };
+            Rectangle scarfyRec{
+                scarfyData.pos.x,
+                scarfyData.pos.y,
+                scarfyData.rec.width,
+                scarfyData.rec.height
+            };
+            if(CheckCollisionRecs(nebRec, scarfyRec)){
+                collision = true;
+            }
+        }
+        if(collision){
+            //Collision, we hit a nebula, lose the game
+            DrawText("Game Over!",  windowDimensions[0]/4, windowDimensions[1]/2, 40, RED);
+        }
+        else if(scarfyData.pos.x >= finishLine){
+            DrawText("Win!",  windowDimensions[0]/4, windowDimensions[1]/2, 80, GREEN);
+        }
+        else{
+            //Draw scarfy
+            DrawTextureRec(scarfy, scarfyData.rec, scarfyData.pos, WHITE);
 
-        //Draw nebula
-        for (int i = 0; i < sizeOfNebulae; i++)
-        {
-            DrawTextureRec(nebula, nebulae[i].rec, nebulae[i].pos, WHITE);
+            //Draw nebula
+            for (int i = 0; i < sizeOfNebulae; i++)
+            {
+                DrawTextureRec(nebula, nebulae[i].rec, nebulae[i].pos, WHITE);
+
+            }
 
         }
+
 
 
         EndDrawing();
